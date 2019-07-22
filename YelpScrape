@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 26 12:03:56 2019
+
+@author: hoosiernot
+"""
+
+
+from urllib.request import urlopen as uReq
+from bs4 import BeautifulSoup as soup
+import openpyxl
+wb = openpyxl.load_workbook('/Users/hoosiernot/.spyder-py3/yelp.xlsx')
+ws = wb.active
+i = 0
+
+
+    
+#sheet = wb["Sheet1"]
+#ws = file_handle.active
+
+
+def getDetails(my_url) :
+    #my_url = 'https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bloomington%2C%20IN&start='30'
+    uClient = uReq(my_url)
+    page_html = uClient.read()
+    uClient.close()
+    
+    #gets page html
+    page_soup = soup(page_html, "lxml")
+    #gets names of restaurant
+    nameContainers = page_soup.find_all('div', {'class' : "lemon--div__373c0__1mboc largerScrollablePhotos__373c0__3FEIJ arrange__373c0__UHqhV border-color--default__373c0__2oFDT"})
+    #gets phone number of restaurants
+    phoneContainer = page_soup.find_all('div', {'class' : "lemon--div__373c0__1mboc secondaryAttributes__373c0__7bA0w arrange-unit__373c0__1piwO border-color--default__373c0__2oFDT"} )
+
+    #gets addresses of restaurants
+    location = page_soup.find_all('div', {'class' : "lemon--div__373c0__1mboc container__373c0__19wDx u-padding-l2 border-color--default__373c0__2oFDT text-align--right__373c0__3fmmn"})
+    #gets addresses of restaurants
+    location_plus = page_soup.find_all('div', {'class' : "lemon--div__373c0__1mboc container__373c0__19wDx u-padding-l2 border-color--default__373c0__2oFDT text-align--right__373c0__3fmmn"})
+    #gets addresses of restaurants
+    new_location = page_soup.find_all('address', {'class' : "lemon--address__373c0__2sPac"})
+    #gets page number information
+    page_info = page_soup.find('div', {'class' : "lemon--div__373c0__1mboc border--top__373c0__19Owr border-color--default__373c0__2oFDT" })
+    #converts it to text
+    page_info = page_info.div.div.text
+    #page_total = int(page_info[10:])
+    #current page number
+    page_number = int(page_info[5:7])
+    #catgeories = page_soup.find_all('span', {'class' : "lemon--span__373c0__3997G display--inline__373c0__1DbOG border-color--default__373c0__2oFDT"})
+
+      
+    for i in range(1,31):
+
+        organizationName = str(nameContainers[i].div.div.div.h3.a.text) #name
+        ws.cell(row=i, column=2).value = organizationName
+        print(organizationName)
+
+        phoneNumber = str(phoneContainer[i].div.div.text) #number
+        ws.cell(row=i, column=3).value = phoneNumber
+        print(phoneNumber)
+        
+        # the html would load differently if you were on the first page opposed to second page and beyond
+        if page_number > 1:
+            #address = str(location_plus[i].address.div)
+            address = str(new_location[i].div.span.text)
+            ws.cell(row=i, column=4).value = address
+        else:
+            address = str(location[i].address.div.span.text) # address for other pages
+            ws.cell(row=i, column=4).value = address
+        #print(location_plus[1].address.div.span.text)
+        print(address)
+        print("")
+        i += 1
+    wb.save('/Users/hoosiernot/.spyder-py3/yelp.xlsx')
+
+    
+
+#url = 'https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bloomington%2C%20IN&start=str()  
+
+getDetails('https://www.yelp.com/search?find_desc=Restaurants&find_loc=New+York%2C+NY')
+
+# I didnt know where to find the excel file so i used this 
+import os 
+  
+# This is to get the directory that the program  
+# is currently running in. 
+dir_path = os.path.dirname(os.path.realpath(__file__)) 
+  
+for root, dirs, files in os.walk(dir_path): 
+    for file in files:  
+  
+        # change the extension from '.mp3' to  
+        # the one of your choice. 
+        if file.endswith('.xlsx'): 
+            print (root+'/'+str(file) ) 
+
+
